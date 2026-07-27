@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { Providers } from "@/app/providers";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -9,14 +10,14 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Vefa | Bağış Yönetimi",
-  description: "Tarayıcı tabanlı hızlı bağış ve kurban yönetim sistemi",
+  title: { default: "Vefa | Bağış Yönetimi", template: "%s | Vefa" },
+  description: "Bağış ve kurban süreçleri için güvenli yönetim sistemi.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="tr" className={poppins.variable}>
-      <body>{children}</body>
+      <body><Providers>{children}</Providers></body>
     </html>
   );
 }

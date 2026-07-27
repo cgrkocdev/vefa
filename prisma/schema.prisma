@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  DONATION_STAFF
+  REPORT_VIEWER
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  OTHER
+}
+
+enum SacrificeStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum ShareStatus {
+  EMPTY
+  PENDING
+  FILLED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum SmsStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  code        UserRole     @unique
+  name        String
+  description String?
+  users       User[]
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  roles       Role[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id            String           @id @default(cuid())
+  name          String
+  email         String           @unique
+  passwordHash  String
+  roleCode      UserRole         @default(DONATION_STAFF)
+  roleId        String
+  role          Role             @relation(fields: [roleId], references: [id])
+  isActive      Boolean          @default(true)
+  donations     Donation[]       @relation("CreatedDonations")
+  shares        SacrificeShare[] @relation("CreatedShares")
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([roleId])
+}
+
+model Donor {
+  id               String            @id @default(cuid())
+  name             String
+  phone            String            @unique
+  email            String?
+  address          String?
+  totalDonation    Decimal           @default(0) @db.Decimal(14, 2)
+  donationCount    Int               @default(0)
+  lastDonationAt   DateTime?
+  donations        Donation[]
+  shares           SacrificeShare[]
+  smsMessages      SmsMessage[]
+  whatsappMessages WhatsAppMessage[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([name])
+  @@index([lastDonationAt])
+}
+
+model DonationType {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  name        String     @unique
+  description String?
+  isActive    Boolean    @default(true)
+  donations   Donation[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Donation {
+  id               String            @id @default(cuid())
+  receiptNo        String            @unique
+  idempotencyKey   String            @unique
+  amount           Decimal           @db.Decimal(14, 2)
+  status           DonationStatus    @default(COMPLETED)
+  paymentMethod    PaymentMethod
+  description      String?
+  donorId          String
+  donor            Donor             @relation(fields: [donorId], references: [id])
+  donationTypeId   String
+  donationType     DonationType      @relation(fields: [donationTypeId], references: [id])
+  createdById      String
+  createdBy        User              @relation("CreatedDonations", fields: [createdById], references: [id])
+  share            SacrificeShare?
+  smsMessages      SmsMessage[]
+  whatsappMessages WhatsAppMessage[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([createdAt])
+  @@index([donorId])
+  @@index([donationTypeId])
+}
+
+model Sacrifice {
+  id         String           @id @default(cuid())
+  number     Int              @unique
+  region     String
+  sharePrice Decimal          @db.Decimal(14, 2)
+  status     SacrificeStatus  @default(OPEN)
+  shares     SacrificeShare[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model SacrificeShare {
+  id               String            @id @default(cuid())
+  shareNo          Int
+  status           ShareStatus       @default(EMPTY)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  paymentMethod    PaymentMethod?
+  amount           Decimal?          @db.Decimal(14, 2)
+  sacrificeId      String
+  sacrifice        Sacrifice         @relation(fields: [sacrificeId], references: [id])
+  donorId          String?
+  donor            Donor?            @relation(fields: [donorId], references: [id])
+  donationId       String?           @unique
+  donation         Donation?         @relation(fields: [donationId], references: [id])
+  createdById      String?
+  createdBy        User?             @relation("CreatedShares", fields: [createdById], references: [id])
+  smsMessages      SmsMessage[]
+  whatsappMessages WhatsAppMessage[]
+  version          Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([sacrificeId, shareNo])
+  @@index([donorId])
+}
+
+model SmsMessage {
+  id           String          @id @default(cuid())
+  phone        String
+  message      String
+  status       SmsStatus       @default(QUEUED)
+  provider     String
+  providerId   String?
+  errorMessage String?
+  donationId   String?
+  donation     Donation?       @relation(fields: [donationId], references: [id])
+  donorId      String?
+  donor        Donor?          @relation(fields: [donorId], references: [id])
+  shareId      String?
+  share        SacrificeShare? @relation(fields: [shareId], references: [id])
+  sentAt       DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([donationId])
+}
+
+model WhatsAppMessage {
+  id           String          @id @default(cuid())
+  phone        String
+  message      String
+  status       SmsStatus       @default(QUEUED)
+  provider     String
+  providerId   String?
+  errorMessage String?
+  donationId   String?
+  donation     Donation?       @relation(fields: [donationId], references: [id])
+  donorId      String?
+  donor        Donor?          @relation(fields: [donorId], references: [id])
+  shareId      String?
+  share        SacrificeShare? @relation(fields: [shareId], references: [id])
+  sentAt       DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([donationId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

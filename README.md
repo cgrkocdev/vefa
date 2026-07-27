@@ -1,34 +1,44 @@
-# Vefa Bağış Yönetimi
+# Vefa Bağış Yönetim Sistemi
 
-Veritabanı ve sunucu kurulumu gerektirmeyen, hızlı ve tarayıcı tabanlı bağış yönetim sistemi.
+Next.js, TypeScript, Tailwind CSS, Prisma ve PostgreSQL tabanlı bağış ve kurban yönetim paneli.
 
-## Özellikler
+## Başlangıç
 
-- Bağışçıları telefon numarasıyla otomatik tanıma
-- Ülkeye göre kurban hisse fiyatı ve otomatik sıra tahsisi
-- Yedi hisse dolduğunda sonraki kurbana geçiş
-- WhatsApp teşekkür mesajı hazırlama
-- Kullanıcı ve işlem yapan personel kaydı
-- Yazdırılabilir ve CSV olarak indirilebilir raporlar
-- JSON veri yedeği
-- Responsive kurumsal arayüz
-
-## Çalıştırma
+1. `.env.example` dosyasını `.env` olarak kopyalayın.
+2. PostgreSQL bağlantı adresini ve `NEXTAUTH_SECRET` değerini düzenleyin.
+3. Veritabanını hazırlayın:
 
 ```bash
-npm install
+npm run db:migrate
+npm run db:seed
+```
+
+4. Uygulamayı çalıştırın:
+
+```bash
 npm run dev
 ```
 
-Üretim kontrolü:
+## Komutlar
 
-```bash
-npm run lint
-npm run build
-```
+- `npm run dev`: Geliştirme sunucusu
+- `npm run build`: Üretim derlemesi
+- `npm run lint`: Kod kalite kontrolü
+- `npm run typecheck`: TypeScript kontrolü
+- `npm run db:generate`: Prisma istemcisini üretir
+- `npm run db:migrate`: Geliştirme migrasyonu oluşturur
+- `npm run db:seed`: Rol, izin, bağış türü, kurban ve ilk yönetici kayıtlarını oluşturur
 
-## Veri saklama
+## Mimari notlar
 
-Tüm kayıtlar tarayıcının `localStorage` alanında tutulur. Sunucuya veya veritabanına veri gönderilmez. Farklı tarayıcılar ve cihazlar aynı kayıtları paylaşmaz. Tarayıcı verileri temizlenmeden önce Ayarlar ekranından JSON yedeği alınmalıdır.
+- `src/components/ui`: shadcn/ui yaklaşımıyla yeniden kullanılabilir arayüz temelleri
+- `src/components/layout`: Panel kabuğu, sidebar ve header
+- `src/lib`: doğrulama, yetki, biçimlendirme, authentication ve Prisma yardımcıları
+- `prisma/schema.prisma`: kullanıcı, bağışçı, bağış, kurban hissesi, SMS ve denetim kayıtları
+- `src/app/api/auth`: Auth.js/NextAuth credentials sağlayıcısı
 
-Bu sürüm tek cihazlı kullanım için tasarlanmıştır. Merkezi kullanıcı doğrulaması, cihazlar arası eşzamanlama ve gerçek sunucu tarafı yetkilendirme gerektiren kullanımlarda bir sunucu/veritabanı katmanı eklenmelidir.
+Geliştirme ortamında SMS işlemleri `MockSmsProvider` üzerinden yürütülür ve gerçek gönderim yapılmaz.
+
+İlk yönetici hesabı `yonetici@vefa.org` adresiyle oluşturulur. Şifre `.env`
+dosyasındaki `SEED_ADMIN_PASSWORD` değerinden alınır ve ilk girişten sonra
+değiştirilmelidir.

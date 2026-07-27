@@ -1,22 +1,79 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #0b1739;
-  --green: #15803d;
+  --background: #f6f8f7;
+  --foreground: #172b35;
 }
 
-* { box-sizing: border-box; }
-html { background: #f4f6f8; }
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-poppins);
+}
+
+* {
+  border-color: #e2e8f0;
+}
+
+html {
+  background: var(--background);
+}
+
 body {
   margin: 0;
-  color: #172033;
-  background: #f4f6f8;
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
 }
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+::selection {
+  background: #a7f3d0;
+  color: #064e3b;
+}
+
 @media print {
-  .no-print { display: none !important; }
-  main { margin: 0 !important; padding: 0 !important; }
-  body { background: white; }
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  aside,
+  body > div > div > header,
+  .print-hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  #printable-report {
+    max-width: none !important;
+  }
+
+  #printable-report > * {
+    break-inside: avoid;
+  }
+
+  #printable-report .shadow-\[0_8px_30px_rgb\(15_23_42\/0\.04\)\] {
+    box-shadow: none !important;
+  }
 }
