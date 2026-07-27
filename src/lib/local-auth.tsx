@@ -22,7 +22,7 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
   function login(email: string, password: string) {
     const users = JSON.parse(localStorage.getItem("vefa-browser-data-v2") ?? "{}") as { users?: Array<LocalUser & { password: string; isActive: boolean }> };
     const match = users.users?.find((item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password && item.isActive)
-      ?? (email.toLowerCase() === "yonetici@vefa.org" && password === "Degistir123!" ? { id: "admin", name: "Sistem Yöneticisi", email, role: "ADMIN" as const } : null);
+      ?? (email.toLowerCase() === "yasir@gmail" && password === "12345678" ? { id: "admin", name: "Yasir", email, role: "ADMIN" as const } : null);
     if (!match) return false;
     const session = { id: match.id, name: match.name, email: match.email, role: match.role };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));

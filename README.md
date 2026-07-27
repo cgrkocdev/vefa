@@ -13,8 +13,8 @@ Veritabanı, migration veya ortam değişkeni gerekmez.
 
 ## Yerel giriş
 
-- E-posta: `yonetici@vefa.org`
-- Şifre: `Degistir123!`
+- Kullanıcı adı: `yasir@gmail`
+- Şifre: `12345678`
 
 ## Veri saklama
 

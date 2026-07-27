@@ -59,8 +59,8 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">E-posta adresi</span>
-              <div className="relative"><Mail className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><Input className="pl-11" placeholder="ornek@kurum.org" {...register("email")} /></div>
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Kullanıcı adı</span>
+              <div className="relative"><Mail className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><Input className="pl-11" placeholder="Kullanıcı adınızı girin" {...register("email")} /></div>
               {errors.email && <span className="mt-1.5 block text-xs text-red-600">{errors.email.message}</span>}
             </label>
             <label className="block">
@@ -79,7 +79,6 @@ export default function LoginPage() {
               {isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : "Giriş Yap"}
             </Button>
           </form>
-          <p className="mt-5 rounded-xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">Yerel giriş: <strong>yonetici@vefa.org</strong><br />Şifre: <strong>Degistir123!</strong></p>
           <p className="mt-8 text-center text-xs text-slate-400">Erişim sorunu yaşıyorsanız sistem yöneticinizle iletişime geçin.</p>
         </div>
       </section>

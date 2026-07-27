@@ -20,7 +20,7 @@ const now = () => new Date().toISOString();
 const shares = (prefix: string): Share[] => Array.from({ length: 7 }, (_, index) => ({ id: `${prefix}-${index + 1}`, shareNo: index + 1, status: "EMPTY", paymentStatus: "PENDING", paymentMethod: null, amount: 0, version: 1, donor: null }));
 const seed = (): LocalData => ({
   users: [
-    { id: "admin", name: "Sistem Yöneticisi", email: "yonetici@vefa.org", password: "Degistir123!", roleCode: "ADMIN", role: "ADMIN", isActive: true, createdAt: now() },
+    { id: "admin", name: "Yasir", email: "yasir@gmail", password: "12345678", roleCode: "ADMIN", role: "ADMIN", isActive: true, createdAt: now() },
     { id: "staff", name: "Bağış Personeli", email: "personel@vefa.org", password: "Personel123!", roleCode: "DONATION_STAFF", role: "DONATION_STAFF", isActive: true, createdAt: now() },
   ],
   donors: [], donations: [], whatsapp: [], sms: [], activities: [],
@@ -33,7 +33,20 @@ const seed = (): LocalData => ({
 });
 const read = () => {
   const stored = localStorage.getItem(KEY);
-  if (stored) return JSON.parse(stored) as LocalData;
+  if (stored) {
+    const data = JSON.parse(stored) as LocalData;
+    const admin = data.users.find((user) => user.id === "admin");
+    if (admin) {
+      admin.name = "Yasir";
+      admin.email = "yasir@gmail";
+      admin.password = "12345678";
+      admin.role = "ADMIN";
+      admin.roleCode = "ADMIN";
+      admin.isActive = true;
+      localStorage.setItem(KEY, JSON.stringify(data));
+    }
+    return data;
+  }
   const data = seed(); localStorage.setItem(KEY, JSON.stringify(data)); return data;
 };
 const write = (data: LocalData) => localStorage.setItem(KEY, JSON.stringify(data));
