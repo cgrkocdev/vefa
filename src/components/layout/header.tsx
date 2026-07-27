@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, LoaderCircle, LogOut, Menu, ReceiptText, Search, Settings, UserRound, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { useLocalAuth } from "@/lib/local-auth";
 import { Input } from "@/components/ui/input";
 
 const pageDetails: Record<string, { title: string; description: string }> = {
@@ -27,7 +27,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const { data: session } = useSession();
+  const { user, logout } = useLocalAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -113,22 +113,22 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
           aria-expanded={userMenuOpen}
           className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white py-1.5 pl-1.5 pr-2.5 text-left shadow-sm hover:bg-slate-50"
         >
-          <span className="grid size-8 place-items-center rounded-lg bg-[#0b2b3c] text-xs font-bold text-white">{session?.user.name?.split(" ").map((part) => part[0]).slice(0, 2).join("") ?? "AY"}</span>
+          <span className="grid size-8 place-items-center rounded-lg bg-[#0b2b3c] text-xs font-bold text-white">{user?.name?.split(" ").map((part) => part[0]).slice(0, 2).join("") ?? "AY"}</span>
           <span className="hidden sm:block">
-            <span className="block text-xs font-semibold text-slate-900">{session?.user.name ?? "Kullanıcı"}</span>
-            <span className="block text-[10px] text-slate-500">{session?.user.role === "ADMIN" ? "Yönetici" : session?.user.role === "DONATION_STAFF" ? "Bağış Personeli" : "Rapor Kullanıcısı"}</span>
+            <span className="block text-xs font-semibold text-slate-900">{user?.name ?? "Kullanıcı"}</span>
+            <span className="block text-[10px] text-slate-500">{user?.role === "ADMIN" ? "Yönetici" : user?.role === "DONATION_STAFF" ? "Bağış Personeli" : "Rapor Kullanıcısı"}</span>
           </span>
           <ChevronDown className="hidden size-4 text-slate-400 sm:block" />
         </button>
         {userMenuOpen && (
           <div className="absolute right-0 top-[calc(100%+8px)] w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
             <div className="border-b border-slate-100 px-3 py-2 sm:hidden">
-              <p className="text-xs font-semibold text-slate-900">{session?.user.name ?? "Kullanıcı"}</p>
-              <p className="text-[10px] text-slate-500">{session?.user.email}</p>
+              <p className="text-xs font-semibold text-slate-900">{user?.name ?? "Kullanıcı"}</p>
+              <p className="text-[10px] text-slate-500">{user?.email}</p>
             </div>
             <Link href="/" className="flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"><UserRound className="size-4" /> Ana sayfa</Link>
-            {session?.user.role === "ADMIN" && <Link href="/ayarlar" className="flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"><Settings className="size-4" /> Sistem ayarları</Link>}
-            <button onClick={() => void signOut({ callbackUrl: "/giris" })} className="flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-xs font-medium text-red-600 hover:bg-red-50"><LogOut className="size-4" /> Güvenli çıkış</button>
+            {user?.role === "ADMIN" && <Link href="/ayarlar" className="flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"><Settings className="size-4" /> Sistem ayarları</Link>}
+            <button onClick={logout} className="flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-xs font-medium text-red-600 hover:bg-red-50"><LogOut className="size-4" /> Güvenli çıkış</button>
           </div>
         )}
       </div>

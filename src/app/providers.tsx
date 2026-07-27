@@ -1,7 +1,9 @@
 "use client";
 
-import { SessionProvider } from "next-auth/react";
+import { LocalAuthProvider } from "@/lib/local-auth";
+import { installLocalApi } from "@/lib/local-api";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  installLocalApi();
+  return <LocalAuthProvider>{children}</LocalAuthProvider>;
 }

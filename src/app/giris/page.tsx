@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, HandHeart, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loginSchema } from "@/lib/validations";
 import type { z } from "zod";
+import { useLocalAuth } from "@/lib/local-auth";
 
 type LoginInput = z.infer<typeof loginSchema>;
 
@@ -17,14 +17,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const router = useRouter();
+  const { login } = useLocalAuth();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
 
   async function onSubmit(values: LoginInput) {
     setFormError("");
-    const result = await signIn("credentials", { ...values, redirect: false });
-    if (result?.error) {
+    if (!login(values.email, values.password)) {
       setFormError("E-posta adresi veya şifre hatalı.");
       return;
     }
@@ -79,6 +79,7 @@ export default function LoginPage() {
               {isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : "Giriş Yap"}
             </Button>
           </form>
+          <p className="mt-5 rounded-xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">Yerel giriş: <strong>yonetici@vefa.org</strong><br />Şifre: <strong>Degistir123!</strong></p>
           <p className="mt-8 text-center text-xs text-slate-400">Erişim sorunu yaşıyorsanız sistem yöneticinizle iletişime geçin.</p>
         </div>
       </section>

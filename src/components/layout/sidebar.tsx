@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, HandHeart, LogOut, X } from "lucide-react";
 import { APP_NAME, NAV_ITEMS, type UserRole } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useLocalAuth } from "@/lib/local-auth";
 
 type SidebarProps = {
   open: boolean;
@@ -16,6 +16,7 @@ type SidebarProps = {
 };
 
 export function Sidebar({ open, onClose, collapsed, onCollapse, role = "ADMIN" }: SidebarProps) {
+  const { logout } = useLocalAuth();
   const pathname = usePathname();
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role));
 
@@ -81,7 +82,7 @@ export function Sidebar({ open, onClose, collapsed, onCollapse, role = "ADMIN" }
           <p className="mt-1 text-[11px] leading-4 text-slate-400">
             Destek ekibimiz iş günlerinde yanınızda.
           </p>
-          <button onClick={() => void signOut({ callbackUrl: "/giris" })} className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white">
+          <button onClick={logout} className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white">
             <LogOut className="size-4" /> Güvenli çıkış
           </button>
         </div>
