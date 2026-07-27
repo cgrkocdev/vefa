@@ -42,6 +42,14 @@ export const DONATION_TYPES = [
   "Genel Bağış",
 ] as const;
 
+export const SACRIFICE_KINDS = [
+  { value: "VACIP", label: "Vacip Kurban" },
+  { value: "ADAK", label: "Adak Kurban" },
+  { value: "AKIKA", label: "Akika Kurban" },
+] as const;
+
+export type SacrificeKind = (typeof SACRIFICE_KINDS)[number]["value"];
+
 export const PAYMENT_METHODS = [
   { value: "CASH", label: "Nakit" },
   { value: "BANK_TRANSFER", label: "Havale / EFT" },

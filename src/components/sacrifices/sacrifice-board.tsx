@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ErrorState, Skeleton } from "@/components/ui/states";
-import { PAYMENT_METHODS } from "@/lib/constants";
+import { PAYMENT_METHODS, SACRIFICE_KINDS, type SacrificeKind } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
 
 type ShareStatus = "EMPTY" | "PENDING" | "FILLED" | "CANCELLED";
@@ -14,7 +14,7 @@ type Share = {
   id: string; shareNo: number; status: ShareStatus; paymentStatus: "PENDING" | "PAID" | "CANCELLED";
   paymentMethod: string | null; amount: number; version: number; donor: { name: string; phone: string } | null;
 };
-type Sacrifice = { id: string; number: number; region: string; sharePrice: number; status: "OPEN" | "COMPLETED" | "CANCELLED"; shares: Share[] };
+type Sacrifice = { id: string; number: number; region: string; kind: SacrificeKind; sharePrice: number; status: "OPEN" | "COMPLETED" | "CANCELLED"; shares: Share[] };
 
 const shareStyles: Record<ShareStatus, string> = {
   EMPTY: "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100",
@@ -27,6 +27,7 @@ const statusLabels: Record<ShareStatus, string> = { EMPTY: "Boş", PENDING: "Bek
 export function SacrificeBoard() {
   const [sacrifices, setSacrifices] = useState<Sacrifice[]>([]);
   const [selected, setSelected] = useState<{ sacrifice: Sacrifice; share: Share } | null>(null);
+  const [kindFilter, setKindFilter] = useState<"ALL" | SacrificeKind>("ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -50,16 +51,22 @@ export function SacrificeBoard() {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap gap-4 text-[11px] font-medium text-slate-500">
-        {(["EMPTY", "PENDING", "FILLED", "CANCELLED"] as ShareStatus[]).map((status) => <span key={status} className="flex items-center gap-1.5"><span className={`size-3 rounded border ${shareStyles[status]}`} />{statusLabels[status]}</span>)}
+      <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => setKindFilter("ALL")} className={`rounded-xl px-3 py-2 text-xs font-semibold ${kindFilter === "ALL" ? "bg-[#0b2b3c] text-white" : "bg-slate-50 text-slate-600"}`}>Tümü</button>
+          {SACRIFICE_KINDS.map((kind) => <button key={kind.value} onClick={() => setKindFilter(kind.value)} className={`rounded-xl px-3 py-2 text-xs font-semibold ${kindFilter === kind.value ? "bg-[#0b2b3c] text-white" : "bg-slate-50 text-slate-600"}`}>{kind.label}</button>)}
+        </div>
+        <div className="flex flex-wrap gap-4 text-[11px] font-medium text-slate-500">
+          {(["EMPTY", "PENDING", "FILLED", "CANCELLED"] as ShareStatus[]).map((status) => <span key={status} className="flex items-center gap-1.5"><span className={`size-3 rounded border ${shareStyles[status]}`} />{statusLabels[status]}</span>)}
+        </div>
       </div>
       <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-        {sacrifices.map((sacrifice) => {
+        {sacrifices.filter((sacrifice) => kindFilter === "ALL" || sacrifice.kind === kindFilter).map((sacrifice) => {
           const filled = sacrifice.shares.filter((share) => share.status === "FILLED").length;
           return (
             <Card key={sacrifice.id} className="p-5">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Bird className="size-5" /></span><div><h3 className="font-bold text-[#0b2b3c]">{sacrifice.number}. Kurban</h3><p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500"><MapPin className="size-3" />{sacrifice.region}</p></div></div>
+                <div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Bird className="size-5" /></span><div><p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">{SACRIFICE_KINDS.find((item) => item.value === sacrifice.kind)?.label}</p><h3 className="font-bold text-[#0b2b3c]">{sacrifice.number}. Kurban</h3><p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500"><MapPin className="size-3" />{sacrifice.region}</p></div></div>
                 <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${sacrifice.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700" : "bg-sky-50 text-sky-700"}`}>{sacrifice.status === "COMPLETED" ? "Tamamlandı" : "Hisseye açık"}</span>
               </div>
               <div className="mt-5 flex items-end justify-between"><div><p className="text-[10px] text-slate-400">Hisse bedeli</p><p className="mt-1 text-lg font-bold text-[#0b2b3c]">{formatCurrency(sacrifice.sharePrice)}</p></div><p className="text-xs text-slate-500"><strong className="text-slate-800">{filled}</strong> dolu · <strong className="text-slate-800">{7 - filled}</strong> kalan</p></div>
@@ -100,7 +107,7 @@ function ShareModal({ selected, onClose, onSaved }: { selected: { sacrifice: Sac
   return (
     <div className="fixed inset-0 z-[70] grid place-items-end bg-slate-950/40 p-0 backdrop-blur-sm sm:place-items-center sm:p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <Card className="max-h-[92vh] w-full overflow-auto rounded-b-none p-5 sm:max-w-lg sm:rounded-2xl sm:p-6">
-        <div className="flex items-start justify-between"><div><h2 className="text-lg font-bold text-[#0b2b3c]">{selected.sacrifice.number}. Kurban · {selected.share.shareNo}. Hisse</h2><p className="mt-1 text-xs text-slate-500">{selected.sacrifice.region} bölgesi için hisse kaydı</p></div><button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X className="size-5" /></button></div>
+        <div className="flex items-start justify-between"><div><p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">{SACRIFICE_KINDS.find((item) => item.value === selected.sacrifice.kind)?.label}</p><h2 className="text-lg font-bold text-[#0b2b3c]">{selected.sacrifice.number}. Kurban · {selected.share.shareNo}. Hisse</h2><p className="mt-1 text-xs text-slate-500">{selected.sacrifice.region} bölgesi için hisse kaydı</p></div><button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X className="size-5" /></button></div>
         <form onSubmit={submit} className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2"><span className="mb-2 block text-xs font-semibold text-slate-700">Bağışçı</span><Input name="donorName" required placeholder="Ad soyad" /></label>
           <label className="sm:col-span-2"><span className="mb-2 block text-xs font-semibold text-slate-700">Telefon</span><Input name="phone" required inputMode="tel" placeholder="05XX XXX XX XX" /></label>

@@ -8,7 +8,7 @@ import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { DONATION_TYPES, PAYMENT_METHODS } from "@/lib/constants";
+import { DONATION_TYPES, PAYMENT_METHODS, SACRIFICE_KINDS, type SacrificeKind } from "@/lib/constants";
 import { donationSchema } from "@/lib/validations";
 import { publishDonation } from "@/lib/realtime";
 import { normalizePhone } from "@/lib/phone";
@@ -30,6 +30,7 @@ type SacrificeOption = {
   id: string;
   number: number;
   region: string;
+  kind: SacrificeKind;
   sharePrice: number;
   status: "OPEN" | "COMPLETED" | "CANCELLED";
   shares: Array<{ status: string }>;
@@ -50,6 +51,7 @@ export function DonationForm() {
   const [formError, setFormError] = useState("");
   const [donorFound, setDonorFound] = useState(false);
   const [sacrifices, setSacrifices] = useState<SacrificeOption[]>([]);
+  const [sacrificeKind, setSacrificeKind] = useState<SacrificeKind>("VACIP");
   const lookupAbortRef = useRef<AbortController | null>(null);
   const {
     register, handleSubmit, reset, setValue, control,
@@ -73,7 +75,7 @@ export function DonationForm() {
         if (!response.ok) return;
         const data = (await response.json()) as { sacrifices: SacrificeOption[] };
         const available = data.sacrifices.filter(
-          (item) => item.status === "OPEN" && item.shares.some((share) => share.status === "EMPTY"),
+          (item) => item.kind === sacrificeKind && item.status === "OPEN" && item.shares.some((share) => share.status === "EMPTY"),
         );
         setSacrifices(available);
         const selected = available.find((item) => item.id === sacrificeId) ?? available[0];
@@ -86,7 +88,7 @@ export function DonationForm() {
         if (!(error instanceof DOMException && error.name === "AbortError")) setSacrifices([]);
       });
     return () => controller.abort();
-  }, [donationType, sacrificeId, setValue]);
+  }, [donationType, sacrificeId, sacrificeKind, setValue]);
 
   useEffect(() => {
     if (donationType !== "Kurban") return;
@@ -177,22 +179,29 @@ export function DonationForm() {
             </select>
           </Field>
           {donationType === "Kurban" && (
-            <Field label="Kurban ülkesi" error={errors.sacrificeId?.message}>
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <select
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50"
-                  {...register("sacrificeId")}
-                >
-                  {sacrifices.length === 0 && <option value="">Uygun kurban bulunamadı</option>}
-                  {sacrifices.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.region} · {item.number}. Kurban · {item.sharePrice.toLocaleString("tr-TR")} ₺
-                    </option>
-                  ))}
+            <>
+              <Field label="Kurban çeşidi">
+                <select value={sacrificeKind} onChange={(event) => setSacrificeKind(event.target.value as SacrificeKind)} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50">
+                  {SACRIFICE_KINDS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
-              </div>
-            </Field>
+              </Field>
+              <Field label="Kurban ülkesi" error={errors.sacrificeId?.message}>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                  <select
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50"
+                    {...register("sacrificeId")}
+                  >
+                    {sacrifices.length === 0 && <option value="">Uygun kurban bulunamadı</option>}
+                    {sacrifices.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.region} · {item.number}. Kurban · {item.sharePrice.toLocaleString("tr-TR")} ₺
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </Field>
+            </>
           )}
           <Field label="Telefon numarası" error={errors.phone?.message}>
             <div className="relative">

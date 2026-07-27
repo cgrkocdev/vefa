@@ -8,7 +8,8 @@ type User = { id: string; name: string; email: string; password: string; roleCod
 type Donor = { id: string; name: string; phone: string; totalDonation: number; donationCount: number; lastDonationAt: string | null; createdAt: string };
 type Donation = { id: string; receiptNo: string; donorId: string; donorName: string; type: string; amount: number; paymentMethod: string; description: string; status: "COMPLETED"; createdAt: string; createdBy: { id: string; name: string; roleCode: Role }; idempotencyKey: string; sacrificeId?: string; shareNo?: number };
 type Share = { id: string; shareNo: number; status: "EMPTY" | "PENDING" | "FILLED" | "CANCELLED"; paymentStatus: "PENDING" | "PAID" | "CANCELLED"; paymentMethod: string | null; amount: number; version: number; donor: { id: string; name: string; phone: string } | null; donationId?: string };
-type Sacrifice = { id: string; number: number; region: string; sharePrice: number; status: "OPEN" | "COMPLETED"; shares: Share[] };
+type SacrificeKind = "VACIP" | "ADAK" | "AKIKA";
+type Sacrifice = { id: string; number: number; region: string; kind: SacrificeKind; sharePrice: number; status: "OPEN" | "COMPLETED"; shares: Share[] };
 type Message = { id: string; phone: string; message: string; status: "SENT"; errorMessage: null; sentAt: string; createdAt: string; donor: { name: string } | null; donorId: string; donationId?: string };
 type Activity = { id: string; action: string; entity: string; entityId: string | null; createdAt: string; user: { name: string; roleCode: Role } };
 type Settings = { organizationName: string; organizationPhone: string; organizationEmail: string; organizationAddress: string; receiptPrefix: string; whatsappEnabled: boolean };
@@ -25,9 +26,15 @@ const seed = (): LocalData => ({
   ],
   donors: [], donations: [], whatsapp: [], sms: [], activities: [],
   sacrifices: [
-    { id: "kurban-1", number: 1, region: "Somali", sharePrice: 14500, status: "OPEN", shares: shares("k1") },
-    { id: "kurban-2", number: 2, region: "Afrika", sharePrice: 12500, status: "OPEN", shares: shares("k2") },
-    { id: "kurban-3", number: 3, region: "Türkiye", sharePrice: 18500, status: "OPEN", shares: shares("k3") },
+    { id: "vacip-1", number: 1, region: "Somali", kind: "VACIP", sharePrice: 14500, status: "OPEN", shares: shares("v1") },
+    { id: "vacip-2", number: 2, region: "Afrika", kind: "VACIP", sharePrice: 12500, status: "OPEN", shares: shares("v2") },
+    { id: "vacip-3", number: 3, region: "Türkiye", kind: "VACIP", sharePrice: 18500, status: "OPEN", shares: shares("v3") },
+    { id: "adak-4", number: 4, region: "Somali", kind: "ADAK", sharePrice: 14500, status: "OPEN", shares: shares("a4") },
+    { id: "adak-5", number: 5, region: "Afrika", kind: "ADAK", sharePrice: 12500, status: "OPEN", shares: shares("a5") },
+    { id: "adak-6", number: 6, region: "Türkiye", kind: "ADAK", sharePrice: 18500, status: "OPEN", shares: shares("a6") },
+    { id: "akika-7", number: 7, region: "Somali", kind: "AKIKA", sharePrice: 14500, status: "OPEN", shares: shares("k7") },
+    { id: "akika-8", number: 8, region: "Afrika", kind: "AKIKA", sharePrice: 12500, status: "OPEN", shares: shares("k8") },
+    { id: "akika-9", number: 9, region: "Türkiye", kind: "AKIKA", sharePrice: 18500, status: "OPEN", shares: shares("k9") },
   ],
   settings: { organizationName: "Vefa Bağış Yönetimi", organizationPhone: "", organizationEmail: "", organizationAddress: "", receiptPrefix: "BGS", whatsappEnabled: true },
 });
@@ -43,8 +50,19 @@ const read = () => {
       admin.role = "ADMIN";
       admin.roleCode = "ADMIN";
       admin.isActive = true;
-      localStorage.setItem(KEY, JSON.stringify(data));
     }
+    data.sacrifices.forEach((sacrifice) => { sacrifice.kind ??= "VACIP"; });
+    const templates: Array<[SacrificeKind, number, string, number]> = [
+      ["ADAK", 4, "Somali", 14500], ["ADAK", 5, "Afrika", 12500], ["ADAK", 6, "Türkiye", 18500],
+      ["AKIKA", 7, "Somali", 14500], ["AKIKA", 8, "Afrika", 12500], ["AKIKA", 9, "Türkiye", 18500],
+    ];
+    templates.forEach(([kind, number, region, sharePrice]) => {
+      if (!data.sacrifices.some((item) => item.kind === kind && item.region === region)) {
+        const prefix = `${kind.toLowerCase()}-${number}`;
+        data.sacrifices.push({ id: prefix, number, region, kind, sharePrice, status: "OPEN", shares: shares(prefix) });
+      }
+    });
+    localStorage.setItem(KEY, JSON.stringify(data));
     return data;
   }
   const data = seed(); localStorage.setItem(KEY, JSON.stringify(data)); return data;
