@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import {
-  Bell, ChartNoAxesCombined, ChevronRight, CircleUserRound, DatabaseZap, Download,
-  FileText, HandCoins, HeartHandshake, Home, Menu, MessageCircle, Plus, Search,
-  Settings, ShieldCheck, Trash2, Users, X,
+  Bell, ChartNoAxesCombined, ChevronLeft, ChevronRight, CircleUserRound, DatabaseZap, Download,
+  Eye, EyeOff, FileText, HandCoins, HandHeart, HeartHandshake, Home, LoaderCircle, LockKeyhole,
+  LogOut, Mail, Menu, MessageCircle, Plus, Search, Settings, ShieldCheck, Trash2, Users, X,
 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,8 +62,10 @@ function Empty({ title, text }: { title: string; text: string }) {
 
 export function VefaApp() {
   const store = useVefaStore();
+  const [authenticated, setAuthenticated] = useState(false);
   const [view, setView] = useState<View>("dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const currentUser = store.data.users.find((user) => user.id === store.data.currentUserId) ?? store.data.users[0];
@@ -74,24 +76,29 @@ export function VefaApp() {
   const notify = (text: string) => { setToast(text); window.setTimeout(() => setToast(""), 3500); };
 
   if (!store.ready) return <div className="min-h-screen animate-pulse bg-slate-100 p-8"><div className="h-20 rounded-2xl bg-white" /></div>;
+  if (!authenticated && sessionStorage.getItem("vefa-session") !== "active") {
+    return <LoginScreen onLogin={() => { sessionStorage.setItem("vefa-session", "active"); setAuthenticated(true); }} />;
+  }
 
   return <div className="min-h-screen bg-[#f4f6f8]">
     {mobileOpen && <button aria-label="Menüyü kapat" className="fixed inset-0 z-30 bg-slate-950/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
-    <aside className={`no-print fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#0b1739] px-3 py-5 text-white transition-transform lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`no-print fixed inset-y-0 left-0 z-40 flex w-[276px] flex-col bg-[#082839] px-3 py-5 text-white shadow-2xl transition-[transform,width] lg:translate-x-0 lg:shadow-none ${collapsed ? "lg:w-[88px]" : "lg:w-[252px]"} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="mb-7 flex items-center justify-between px-3">
-        <button onClick={() => go("dashboard")} className="flex items-center gap-3 text-left"><span className="grid size-10 place-items-center rounded-xl bg-emerald-500"><HeartHandshake /></span><span><b className="block text-lg">VEFA</b><small className="text-slate-400">Bağış Yönetimi</small></span></button>
+        <button onClick={() => go("dashboard")} className="flex items-center gap-3 text-left"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-500"><HandHeart /></span><span className={collapsed ? "lg:hidden" : ""}><b className="block text-xl">Vefa</b><small className="text-[10px] uppercase tracking-[.2em] text-slate-400">Bağış Yönetimi</small></span></button>
         <button className="lg:hidden" onClick={() => setMobileOpen(false)}><X /></button>
       </div>
       <nav className="space-y-1">
-        {visibleNav.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => go(id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${view === id ? "bg-white/14 text-white" : "text-slate-300 hover:bg-white/8 hover:text-white"}`}><Icon size={19} />{label}</button>)}
+        {visibleNav.map(({ id, label, icon: Icon }) => <button title={collapsed ? label : undefined} key={id} onClick={() => go(id)} className={`relative flex h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium transition ${collapsed ? "lg:justify-center lg:px-0" : ""} ${view === id ? "bg-white/11 text-white" : "text-slate-300 hover:bg-white/8 hover:text-white"}`}><Icon size={19} className={view === id ? "text-emerald-400" : ""} /><span className={collapsed ? "lg:hidden" : ""}>{label}</span>{view === id && <span className="absolute right-0 h-5 w-0.5 rounded-l-full bg-emerald-400" />}</button>)}
       </nav>
-      <div className="mt-auto rounded-xl bg-white/7 p-3">
+      <div className={`mt-auto rounded-2xl bg-white/6 p-3 ${collapsed ? "lg:hidden" : ""}`}>
         <p className="text-xs text-slate-400">Veri modu</p><p className="mt-1 flex items-center gap-2 text-sm font-medium"><span className="size-2 rounded-full bg-emerald-400" />Bu tarayıcıda saklanıyor</p>
+        <button onClick={() => { sessionStorage.removeItem("vefa-session"); setAuthenticated(false); }} className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-300"><LogOut size={15} />Güvenli çıkış</button>
       </div>
+      <button onClick={() => setCollapsed((value) => !value)} className="mt-3 hidden h-10 items-center justify-center gap-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-white/8 hover:text-white lg:flex">{collapsed ? <ChevronRight size={16} /> : <><ChevronLeft size={16} />Menüyü daralt</>}</button>
     </aside>
 
-    <main className="min-h-screen lg:ml-64">
-      <header className="no-print sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 px-4 py-4 backdrop-blur md:px-7">
+    <main className={`min-h-screen transition-[margin] ${collapsed ? "lg:ml-[88px]" : "lg:ml-[252px]"}`}>
+      <header className="no-print sticky top-0 z-20 min-h-[84px] border-b border-slate-200/70 bg-[#f6f8f7]/92 px-4 py-4 backdrop-blur-xl md:px-7">
         <div className="mx-auto flex max-w-7xl items-center gap-4">
           <button className="rounded-lg p-2 text-slate-600 lg:hidden" onClick={() => setMobileOpen(true)}><Menu /></button>
           <div className="min-w-0 flex-1"><h1 className="truncate text-xl font-bold text-[#0b1739]">{viewInfo[view][0]}</h1><p className="hidden truncate text-sm text-slate-500 md:block">{viewInfo[view][1]}</p></div>
@@ -113,6 +120,53 @@ export function VefaApp() {
     </main>
     {toast && <div className="fixed right-5 top-24 z-50 max-w-sm rounded-xl bg-[#0b1739] px-5 py-4 text-sm text-white shadow-2xl">{toast}</div>}
   </div>;
+}
+
+function LoginScreen({ onLogin }: { onLogin: () => void }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("yonetici@vefa.org");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+      if (email.trim().toLocaleLowerCase("tr") !== "yonetici@vefa.org" || password !== "Degistir123!") {
+        setError("E-posta adresi veya şifre hatalı.");
+        return;
+      }
+      onLogin();
+    }, 350);
+  }
+
+  const inputClass = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-3 focus:ring-emerald-100";
+  return <main className="grid min-h-screen bg-[#f6f8f7] lg:grid-cols-[1.05fr_0.95fr]">
+    <section className="hidden overflow-hidden bg-[#082839] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-xl bg-emerald-500"><HandHeart size={24} /></span><div><p className="text-xl font-bold">Vefa</p><p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Bağış Yönetimi</p></div></div>
+      <div className="max-w-xl"><div className="mb-8 h-1 w-14 rounded-full bg-emerald-500" /><h1 className="text-4xl font-bold leading-tight xl:text-5xl">İyiliği, güvenle<br />ve kolayca yönetin.</h1><p className="mt-6 max-w-lg text-base leading-7 text-slate-300">Bağış, bağışçı ve kurban süreçleriniz tek bir hızlı çalışma alanında.</p></div>
+      <p className="text-xs text-slate-500">© 2026 Vefa Bağış Yönetim Sistemi</p>
+    </section>
+    <section className="flex items-center justify-center px-5 py-12 sm:px-10">
+      <div className="w-full max-w-md">
+        <div className="mb-9 flex items-center gap-3 lg:hidden"><span className="grid size-10 place-items-center rounded-xl bg-emerald-500 text-white"><HandHeart size={20} /></span><strong className="text-xl text-[#0b2b3c]">Vefa</strong></div>
+        <p className="text-sm font-semibold text-emerald-600">Tekrar hoş geldiniz</p>
+        <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#0b2b3c]">Hesabınıza giriş yapın</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-500">Yönetim paneline erişmek için bilgilerinizi girin.</p>
+        <form onSubmit={submit} className="mt-8 space-y-5">
+          <label className="block"><span className="mb-2 block text-sm font-semibold text-slate-700">E-posta adresi</span><div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" className={`${inputClass} pl-11`} placeholder="ornek@kurum.org" /></div></label>
+          <label className="block"><span className="mb-2 block text-sm font-semibold text-slate-700">Şifre</span><div className="relative"><LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? "text" : "password"} className={`${inputClass} pl-11 pr-11`} placeholder="••••••••" /><button type="button" aria-label="Şifre görünürlüğünü değiştir" onClick={() => setShowPassword((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></label>
+          {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs font-medium text-red-700">{error}</p>}
+          <button disabled={loading} className="flex h-12 w-full items-center justify-center rounded-xl bg-emerald-600 font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60">{loading ? <LoaderCircle className="animate-spin" size={18} /> : "Giriş Yap"}</button>
+        </form>
+        <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 text-xs leading-5 text-emerald-900"><b>Yerel giriş:</b> yonetici@vefa.org<br /><b>Şifre:</b> Degistir123!</div>
+        <p className="mt-7 text-center text-xs text-slate-400">Bu sürümde oturum ve kayıtlar yalnızca bu tarayıcıda tutulur.</p>
+      </div>
+    </section>
+  </main>;
 }
 
 function Dashboard({ data, go, canEdit, search }: { data: ReturnType<typeof useVefaStore>["data"]; go: (v: View) => void; canEdit: boolean; search: string }) {

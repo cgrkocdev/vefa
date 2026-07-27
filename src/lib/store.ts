@@ -17,8 +17,8 @@ export const initialData: VefaData = {
     { id: "turkiye-3", number: 3, country: "Türkiye", sharePrice: 18500, shares: emptyShares() },
   ],
   users: [
-    { id: "admin", name: "Sistem Yöneticisi", email: "yonetici@vefa.local", role: "YONETICI", active: true },
-    { id: "personel", name: "Bağış Personeli", email: "personel@vefa.local", role: "BAGIS_PERSONELI", active: true },
+    { id: "admin", name: "Sistem Yöneticisi", email: "yonetici@vefa.org", role: "YONETICI", active: true },
+    { id: "personel", name: "Bağış Personeli", email: "personel@vefa.org", role: "BAGIS_PERSONELI", active: true },
   ],
   messages: [],
   audit: [],
