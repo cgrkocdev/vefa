@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vefa Bağış Yönetimi
 
-## Getting Started
+Veritabanı ve sunucu kurulumu gerektirmeyen, hızlı ve tarayıcı tabanlı bağış yönetim sistemi.
 
-First, run the development server:
+## Özellikler
+
+- Bağışçıları telefon numarasıyla otomatik tanıma
+- Ülkeye göre kurban hisse fiyatı ve otomatik sıra tahsisi
+- Yedi hisse dolduğunda sonraki kurbana geçiş
+- WhatsApp teşekkür mesajı hazırlama
+- Kullanıcı ve işlem yapan personel kaydı
+- Yazdırılabilir ve CSV olarak indirilebilir raporlar
+- JSON veri yedeği
+- Responsive kurumsal arayüz
+
+## Çalıştırma
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Üretim kontrolü:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Veri saklama
 
-## Learn More
+Tüm kayıtlar tarayıcının `localStorage` alanında tutulur. Sunucuya veya veritabanına veri gönderilmez. Farklı tarayıcılar ve cihazlar aynı kayıtları paylaşmaz. Tarayıcı verileri temizlenmeden önce Ayarlar ekranından JSON yedeği alınmalıdır.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Bu sürüm tek cihazlı kullanım için tasarlanmıştır. Merkezi kullanıcı doğrulaması, cihazlar arası eşzamanlama ve gerçek sunucu tarafı yetkilendirme gerektiren kullanımlarda bir sunucu/veritabanı katmanı eklenmelidir.
